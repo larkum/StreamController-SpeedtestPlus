@@ -1,0 +1,12 @@
+{
+    "plugin": {
+        "description": "Runs an internet speed test from a key and shows ping, download and upload on it.",
+        "requirements": "An internet connection. The test takes a while and blocks the key until it is done."
+    },
+    "actions": {
+        "Speedtest": {
+            "description": "Starts a speed test when the key is pressed and then shows ping, download and upload speed on the key. Holding the key clears the result and gets it ready for the next run. Takes no settings.",
+            "settings": {}
+        }
+    }
+}
