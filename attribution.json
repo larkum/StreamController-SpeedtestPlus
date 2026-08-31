@@ -1,10 +1,30 @@
 {
-    "generic": {
-        "copyright": "Core447",
-        "original-url": "",
-        "license": "GPL-3.0",
-        "license-url": "https://www.gnu.org/licenses/gpl-3.0.txt",
-        "description": "",
-        "license-description": "Icons from Google Material Icons"
-    }
+  "generic": {
+    "copyright": "Original plugin Copyright (C) Core447; Speedtest+ modifications Copyright (C) 2026 Larkum",
+    "original-url": "https://github.com/StreamController/Speedtest",
+    "license": "GPL-3.0",
+    "license-url": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "description": "Speedtest+ is a substantially modified fork of the original StreamController Speedtest plugin."
+  },
+  "assets/speed.png": {
+    "copyright": "Google Material Icons contributors",
+    "original-url": "https://fonts.google.com/icons",
+    "license": "Apache-2.0",
+    "license-url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "description": "Speed icon inherited from the original plugin."
+  },
+  "assets/speedplus-icon.png": {
+    "copyright": "Speedtest+ icon Copyright (C) 2026 Larkum",
+    "original-url": "https://github.com/larkum/StreamController-SpeedtestPlus",
+    "license": "GPL-3.0",
+    "license-url": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "description": "Original Speedtest+ gauge artwork generated with OpenAI image generation; it does not reproduce Ookla's logo."
+  },
+  "store/Thumbnail.png": {
+    "copyright": "Speedtest+ store banner Copyright (C) 2026 Larkum",
+    "original-url": "https://github.com/larkum/StreamController-SpeedtestPlus",
+    "license": "GPL-3.0",
+    "license-url": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "description": "Original Speedtest+ store banner generated with OpenAI image generation using the project icon as reference; it does not reproduce Ookla's logo."
+  }
 }

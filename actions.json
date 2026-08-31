@@ -1,12 +1,17 @@
 {
-    "plugin": {
-        "description": "Runs an internet speed test from a key and shows ping, download and upload on it.",
-        "requirements": "An internet connection. The test takes a while and blocks the key until it is done."
-    },
-    "actions": {
-        "Speedtest": {
-            "description": "Starts a speed test when the key is pressed and then shows ping, download and upload speed on the key. Holding the key clears the result and gets it ready for the next run. Takes no settings.",
-            "settings": {}
-        }
+  "plugin": {
+    "description": "Runs accurate, configurable Speedtest.net checks and can keep a CSV history.",
+    "requirements": "Internet access and acceptance of Ookla's CLI terms for personal, non-commercial use."
+  },
+  "actions": {
+    "SpeedtestPlus": {
+      "description": "Shows the test time, ping, download and upload. Press to run manually or choose a 5, 10, 15, 30 or 60 minute schedule.",
+      "settings": {
+        "accept_ookla_terms": "Accept Ookla's terms before downloading or running its CLI.",
+        "server_id": "Remember a worldwide Speedtest.net server, enter a known server ID, or use Ookla's automatic selection.",
+        "interval_minutes": "Choose the automatic test interval.",
+        "csv_path": "Optional CSV destination for result history."
+      }
     }
+  }
 }
