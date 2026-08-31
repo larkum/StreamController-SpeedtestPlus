@@ -57,6 +57,12 @@ def display_lines(result: SpeedtestResult) -> tuple[str, str, str]:
     )
 
 
+def should_claim_image_control(
+    image_control_index: int | None, is_multi_action: bool, has_user_asset: bool
+) -> bool:
+    return image_control_index is None and not is_multi_action and not has_user_asset
+
+
 class SpeedtestPlusAction(ActionCore):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -203,6 +209,7 @@ class SpeedtestPlusAction(ActionCore):
             except (TypeError, ValueError):
                 pass
         self.hide_error()
+        self._claim_unassigned_image_control()
         self.set_media(
             media_path=os.path.join(self.plugin_base.PATH, "assets", "speedplus-icon.png"),
             size=0.72,
@@ -212,6 +219,27 @@ class SpeedtestPlusAction(ActionCore):
         self.set_top_label(None, update=False)
         self.set_center_label(None, update=False)
         self.set_bottom_label("Press to Run", color=TIME_PING_COLOR, font_size=9)
+
+    def _claim_unassigned_image_control(self):
+        state = self.get_state()
+        if state is None:
+            return
+        permission_manager = getattr(state, "action_permission_manager", None)
+        if permission_manager is None:
+            return
+        image_control_index = permission_manager.get_image_control_index()
+        if not should_claim_image_control(
+            image_control_index,
+            bool(self.get_is_multi_action()),
+            bool(self.has_custom_user_asset()),
+        ):
+            return
+        action_index = self.get_own_action_index()
+        if action_index is None or action_index < 0:
+            return
+        permission_manager.set_image_control_index(
+            action_index, reload_pages=False, reload_self=False
+        )
 
     def _render_result(self, result: SpeedtestResult):
         top, center, bottom = display_lines(result)

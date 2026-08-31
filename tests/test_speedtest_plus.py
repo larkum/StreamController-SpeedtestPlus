@@ -21,6 +21,21 @@ from speedtest_backend import (
 )
 
 
+def _load_should_claim_image_control():
+    import ast
+
+    source_path = Path(__file__).parents[1] / "actions" / "speedtest_plus.py"
+    module = ast.parse(source_path.read_text(encoding="utf-8"))
+    function = next(
+        node
+        for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "should_claim_image_control"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(source_path), "exec"), namespace)
+    return namespace["should_claim_image_control"]
+
+
 class SpeedtestBackendTests(unittest.TestCase):
     def test_speed_units_are_forced_to_decimal_mbps(self):
         self.assertEqual(bytes_per_second_to_mbps(1_000_000), 8.0)
@@ -163,6 +178,14 @@ class CsvTests(unittest.TestCase):
 
 
 class ArtworkTests(unittest.TestCase):
+    def test_unassigned_image_control_is_claimed_only_on_a_plain_single_action_key(self):
+        should_claim = _load_should_claim_image_control()
+
+        self.assertTrue(should_claim(None, False, False))
+        self.assertFalse(should_claim(0, False, False))
+        self.assertFalse(should_claim(None, True, False))
+        self.assertFalse(should_claim(None, False, True))
+
     def test_action_icon_is_a_deck_sized_rgba_png(self):
         icon_path = Path(__file__).parents[1] / "assets" / "speedplus-icon.png"
         with icon_path.open("rb") as handle:
