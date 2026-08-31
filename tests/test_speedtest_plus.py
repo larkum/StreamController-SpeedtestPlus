@@ -1,5 +1,6 @@
 import csv
 import json
+import struct
 import tempfile
 import unittest
 from pathlib import Path
@@ -159,6 +160,21 @@ class CsvTests(unittest.TestCase):
         self.assertEqual(rows[0]["download_mbps"], "100.56")
         self.assertEqual(rows[0]["ping_ms"], "12.35")
         self.assertEqual(rows[0]["server_id"], "123")
+
+
+class ArtworkTests(unittest.TestCase):
+    def test_action_icon_is_a_deck_sized_rgba_png(self):
+        icon_path = Path(__file__).parents[1] / "assets" / "speedplus-icon.png"
+        with icon_path.open("rb") as handle:
+            self.assertEqual(handle.read(8), b"\x89PNG\r\n\x1a\n")
+            self.assertEqual(handle.read(4), b"\x00\x00\x00\r")
+            self.assertEqual(handle.read(4), b"IHDR")
+            width, height, bit_depth, color_type = struct.unpack(">IIBB", handle.read(10))
+
+        self.assertEqual((width, height), (256, 256))
+        self.assertEqual(bit_depth, 8)
+        self.assertEqual(color_type, 6)
+        self.assertLess(icon_path.stat().st_size, 300_000)
 
 
 if __name__ == "__main__":
