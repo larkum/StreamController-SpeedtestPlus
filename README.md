@@ -93,6 +93,8 @@ Examples of useful searches include `Texas`, `TX`, `Dallas`, `United Kingdom`, `
 
 The key shows the test time, ping, download speed, and upload speed. Time and ping use light blue, download uses yellow, and upload uses red. Text automatically becomes smaller when needed to fit the key.
 
+Before the first successful test, the key displays the Speedtest+ logo with **Press to Run** at the bottom.
+
 Download and upload are always measured in **Mbps**. The unit is omitted from the key to leave more room for the result.
 
 ## Automatic testing
