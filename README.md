@@ -30,6 +30,39 @@ Speedtest+ is an enhanced GPL-3.0 fork of the original [StreamController Speedte
 
 The built-in installer supports x86_64/AMD64, ARM64/AArch64, ARMv7, ARMv6, and 32-bit x86 Linux systems.
 
+## Manual installation
+
+Use these instructions to test Speedtest+ before it is available in the StreamController Store.
+
+### Download the ZIP
+
+1. Open the [Speedtest+ GitHub repository](https://github.com/larkum/StreamController-SpeedtestPlus).
+2. Select **Code**, then **Download ZIP**.
+3. Extract the downloaded ZIP file.
+4. Rename the extracted `StreamController-SpeedtestPlus-main` folder to `com_larkum_SpeedtestPlus`.
+5. Copy that entire folder into StreamController's plugin directory.
+
+For the Flatpak version of StreamController, the finished location must be:
+
+```text
+~/.var/app/com.core447.StreamController/data/plugins/com_larkum_SpeedtestPlus
+```
+
+Make sure `manifest.json` is directly inside `com_larkum_SpeedtestPlus`; an extra nested folder will prevent StreamController from finding the plugin. Completely close and reopen StreamController after copying it, then add **Speedtest+ → Speedtest+** to a key.
+
+### Install with Git
+
+Alternatively, close StreamController and run:
+
+```bash
+git clone https://github.com/larkum/StreamController-SpeedtestPlus.git \
+  ~/.var/app/com.core447.StreamController/data/plugins/com_larkum_SpeedtestPlus
+```
+
+Reopen StreamController when the download finishes. To update this Git installation later, close StreamController and run `git pull` inside the `com_larkum_SpeedtestPlus` folder.
+
+If a previous manual copy is already installed, close StreamController and replace that plugin folder with the newly downloaded version. Your key settings are stored by StreamController and are separate from the plugin files.
+
 ## Set up Speedtest+
 
 1. Add **Speedtest+ → Speedtest+** to a key in StreamController.
