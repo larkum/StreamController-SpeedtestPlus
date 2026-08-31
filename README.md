@@ -1,6 +1,6 @@
 # Speedtest+
 
-![Speedtest+ store banner](store/Thumbnail.png)
+![Speedtest+ banner](store/SpeedtestPlus-Banner.png)
 
 Speedtest+ puts a complete Speedtest.net result on a StreamController key. Run a test on demand or automatically, choose the server you want, keep a CSV history, and open the latest shareable result in your browser.
 
