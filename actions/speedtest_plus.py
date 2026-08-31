@@ -60,7 +60,7 @@ class SpeedtestPlusAction(ActionCore):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.has_configuration = True
-        self.allow_event_configuration = False
+        self.allow_event_configuration = True
         self._running = False
         self._server_choices: list[ServerChoice | None] = [None]
         self._loading_server_model = False
