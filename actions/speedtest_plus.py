@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 import time
 from datetime import datetime
@@ -115,6 +116,7 @@ class SpeedtestPlusAction(ActionCore):
         settings = dict(self.get_settings() or {})
         self._running = True
         self.hide_error()
+        self.set_media(image=None, update=False)
         self.set_top_label(
             datetime.now().strftime("%H:%M"), color=TIME_PING_COLOR, font_size=11, update=False
         )
@@ -201,13 +203,20 @@ class SpeedtestPlusAction(ActionCore):
             except (TypeError, ValueError):
                 pass
         self.hide_error()
-        self.set_top_label("Speedtest+", color=TIME_PING_COLOR, font_size=11, update=False)
-        self.set_center_label("Press to run", color=DOWNLOAD_COLOR, font_size=11, update=False)
-        self.set_bottom_label("Ping · ↓ · ↑", font_size=8)
+        self.set_media(
+            media_path=os.path.join(self.plugin_base.PATH, "assets", "speedplus-icon.png"),
+            size=0.72,
+            valign=-0.65,
+            update=False,
+        )
+        self.set_top_label(None, update=False)
+        self.set_center_label(None, update=False)
+        self.set_bottom_label("Press to Run", color=TIME_PING_COLOR, font_size=9)
 
     def _render_result(self, result: SpeedtestResult):
         top, center, bottom = display_lines(result)
         self.hide_error()
+        self.set_media(image=None, update=False)
         self.set_top_label(
             top,
             color=TIME_PING_COLOR,
