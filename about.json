@@ -1,0 +1,19 @@
+{
+  "author": "Core447; Speedtest+ maintained by Larkum",
+  "release-notes": {
+    "path": "release-notes.html",
+    "version": "0.1.0"
+  },
+  "credits": {
+    "Original plugin": ["Core447"],
+    "Speedtest+": ["Larkum"]
+  },
+  "comments": {
+    "en_US": "An enhanced, unofficial community fork of the original StreamController Speedtest plugin."
+  },
+  "copyright": "Copyright (C) Core447 and Larkum",
+  "support": "https://github.com/larkum/StreamController-SpeedtestPlus/issues",
+  "acknowledgements": {
+    "Project": ["StreamController"]
+  }
+}
