@@ -362,11 +362,6 @@ class SpeedtestPlusAction(ActionCore):
             subtitle="Download and upload are always displayed and saved as Mbps. Ping is shown in ms.",
         )
 
-        self.controls_row = Adw.ActionRow(
-            title="Button controls",
-            subtitle="Press briefly to run a test. Hold to open the latest result in your browser.",
-        )
-
         interval = int(settings.get("interval_minutes", 0) or 0)
         selected_interval = ALLOWED_INTERVALS.index(interval) if interval in ALLOWED_INTERVALS else 0
         self.interval_row = self._combo_row(
@@ -401,7 +396,6 @@ class SpeedtestPlusAction(ActionCore):
             self.server_status_row,
             self.server_id_row,
             self.units_row,
-            self.controls_row,
             self.interval_row,
             self.csv_switch,
             self.csv_path_row,
