@@ -178,6 +178,12 @@ class CsvTests(unittest.TestCase):
 
 
 class ArtworkTests(unittest.TestCase):
+    def test_event_ui_replaces_the_redundant_button_controls_annotation(self):
+        source = (
+            Path(__file__).parents[1] / "actions" / "speedtest_plus.py"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn('title="Button controls"', source)
+
     def test_unassigned_image_control_is_claimed_only_on_a_plain_single_action_key(self):
         should_claim = _load_should_claim_image_control()
 
