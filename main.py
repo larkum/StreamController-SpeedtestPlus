@@ -40,7 +40,7 @@ class SpeedtestPlusPlugin(PluginBase):
                         "values": [0, 5, 10, 15, 30, 60],
                     },
                     "last_automatic_boot_id": {"type": "string", "default": ""},
-                    "csv_path": {"type": "string", "default": ""},
+                    "action_name": {"type": "string", "default": "Speedtest"},
                 },
                 action_support={
                     Input.Key: ActionInputSupport.SUPPORTED,
@@ -146,6 +146,58 @@ class SpeedtestPlusPlugin(PluginBase):
 
         csv_row.connect("notify::active", csv_changed)
         group.add(csv_row)
+
+        location_row = Adw.EntryRow(title="CSV file location")
+        location_row.set_text(str(settings.get("csv_location", "")))
+        location_button = Gtk.Button.new_from_icon_name("folder-open-symbolic")
+        location_button.set_tooltip_text("Choose the folder for CSV files")
+        location_button.set_valign(Gtk.Align.CENTER)
+        location_row.add_suffix(location_button)
+        group.add(location_row)
+
+        def location_changed(row, _param):
+            updated = dict(self.get_settings() or {})
+            updated["csv_location"] = row.get_text().strip()
+            self.set_settings(updated)
+
+        def location_response(dialog, response):
+            if response == Gtk.ResponseType.ACCEPT:
+                selected = dialog.get_file()
+                path = selected.get_path() if selected else None
+                if path:
+                    location_row.set_text(path)
+            self._csv_location_dialog = None
+
+        def choose_location(button):
+            root = button.get_root()
+            parent = root if isinstance(root, Gtk.Window) else None
+            dialog = Gtk.FileChooserNative.new(
+                "Choose CSV file location",
+                parent,
+                Gtk.FileChooserAction.SELECT_FOLDER,
+                "Select",
+                "Cancel",
+            )
+            dialog.connect("response", location_response)
+            self._csv_location_dialog = dialog
+            dialog.show()
+
+        location_row.connect("notify::text", location_changed)
+        location_button.connect("clicked", choose_location)
+
+        individual_row = Adw.SwitchRow(
+            title="Save each action to an individual CSV file",
+            subtitle="Uses each action's name as its filename; otherwise all actions share speedtest-results.csv.",
+        )
+        individual_row.set_active(bool(settings.get("individual_csv_files", False)))
+
+        def individual_changed(row, _param):
+            updated = dict(self.get_settings() or {})
+            updated["individual_csv_files"] = row.get_active()
+            self.set_settings(updated)
+
+        individual_row.connect("notify::active", individual_changed)
+        group.add(individual_row)
         return group
 
     def open_global_settings(self, parent=None):
