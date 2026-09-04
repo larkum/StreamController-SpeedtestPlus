@@ -65,12 +65,14 @@ If a previous manual copy is already installed, close StreamController and repla
 
 ## Set up Speedtest+
 
-1. Add **Speedtest+ → Speedtest+** to a key in StreamController.
-2. Open the action settings.
-3. Select **View terms**, read Ookla's terms, and enable **I accept Ookla's CLI terms** if you agree.
-4. Select **Install** beside **Ookla CLI not installed**.
-5. Leave the server set to **Auto-select the best server**, or search for a specific server.
+1. Open **Settings → Plugins → Speedtest+ → Open Settings**.
+2. Select **View terms**, read Ookla's terms, and enable **I accept Ookla's CLI terms** if you agree.
+3. Select **Install** beside **Ookla CLI not installed**.
+4. Add **Speedtest+ → Speedtest+** to a key.
+5. Leave the server set to **Auto-select the best server**, or search for a specific server in the action settings.
 6. Briefly press the key to run your first test.
+
+The terms choice and CLI installation are global and shared by every Speedtest+ action. Each action starts with a setup-status row and a **Global Settings** button, so incomplete setup is clearly identified and can be opened directly from the action panel.
 
 The installer downloads the official Ookla CLI directly from Ookla, verifies the download, and keeps a private copy in your user data. It does not need an administrator password and does not modify the operating system. If the official CLI is already installed on the system, Speedtest+ can use it.
 
@@ -129,7 +131,7 @@ Tests connect to Speedtest.net and the selected test server. Server discovery al
 
 ## Troubleshooting
 
-- **The key asks me to accept the terms:** enable the Ookla terms switch in the action settings before installing or running the CLI.
+- **The key asks me to accept the terms:** open **Settings → Plugins → Speedtest+ → Open Settings**, or use **Global Settings** at the top of the action panel.
 - **The CLI will not install:** confirm the internet connection and that the processor is listed under Requirements, then try **Install** or **Reinstall** again.
 - **A server search returns no results:** try a broader city, region, country, provider, or state abbreviation, then press refresh again.
 - **A remembered server stops working:** select automatic server choice or search for another server; individual Speedtest.net servers can become unavailable.

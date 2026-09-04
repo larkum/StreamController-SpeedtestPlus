@@ -17,7 +17,6 @@ from src.backend.PluginManager.EventAssigner import EventAssigner
 from src.backend.PluginManager.InputBases import Input as EventInput
 
 from ..csv_logger import append_result
-from ..ookla_installer import OoklaInstallError, install_ookla_cli
 from ..scheduling import ALLOWED_INTERVALS, is_due, next_run_after, should_run_initial_test, system_boot_id
 from ..speedtest_backend import (
     ServerChoice,
@@ -63,6 +62,12 @@ def should_claim_image_control(
     return image_control_index is None and not is_multi_action and not has_user_asset
 
 
+def effective_test_settings(action_settings: dict, global_settings: dict) -> dict:
+    settings = dict(action_settings)
+    settings["accept_ookla_terms"] = bool(global_settings.get("accept_ookla_terms", False))
+    return settings
+
+
 class SpeedtestPlusAction(ActionCore):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -73,6 +78,7 @@ class SpeedtestPlusAction(ActionCore):
         self._loading_server_model = False
         self._syncing_server_id = False
         self._file_dialog = None
+        self._global_settings_dialog = None
         self._config_generation = 0
         self.event_manager.add_event_assigner(
             EventAssigner(
@@ -119,7 +125,9 @@ class SpeedtestPlusAction(ActionCore):
     def _start_test(self):
         if self._running:
             return
-        settings = dict(self.get_settings() or {})
+        settings = effective_test_settings(
+            self.get_settings() or {}, self._global_setup_settings()
+        )
         self._running = True
         self.hide_error()
         self.set_media(image=None, update=False)
@@ -291,38 +299,51 @@ class SpeedtestPlusAction(ActionCore):
         settings.update(values)
         self.set_settings(settings)
 
+    def _global_setup_settings(self):
+        settings = dict(self.plugin_base.get_settings() or {})
+        action_settings = self.get_settings() or {}
+        if (
+            "accept_ookla_terms" not in settings
+            and action_settings.get("accept_ookla_terms")
+        ):
+            settings["accept_ookla_terms"] = True
+            self.plugin_base.set_settings(settings)
+        return settings
+
+    def _refresh_setup_row(self):
+        if not hasattr(self, "setup_row"):
+            return
+        accepted = bool(self._global_setup_settings().get("accept_ookla_terms", False))
+        cli_ready = find_ookla_command() is not None
+        if accepted and cli_ready:
+            self.setup_row.set_title("Global setup complete")
+            self.setup_row.set_subtitle("Ookla CLI is ready for all Speedtest+ actions.")
+        elif not accepted:
+            self.setup_row.set_title("Speedtest+ setup required")
+            self.setup_row.set_subtitle("Accept Ookla's terms in Global Settings before running a test.")
+        else:
+            self.setup_row.set_title("Speedtest+ setup required")
+            self.setup_row.set_subtitle("Install the Ookla CLI in Global Settings before running a test.")
+
+    def _open_global_settings(self, button):
+        parent = button.get_root()
+        self._global_settings_dialog = self.plugin_base.open_global_settings(parent)
+        self._global_settings_dialog.connect("closed", self._on_global_settings_closed)
+
+    def _on_global_settings_closed(self, _dialog):
+        self._global_settings_dialog = None
+        self._refresh_setup_row()
+
     def get_config_rows(self):
         settings = dict(self.get_settings() or {})
         self._config_generation += 1
         generation = self._config_generation
 
-        self.terms_row = Adw.SwitchRow(
-            title="I accept Ookla's CLI terms",
-            subtitle="Required before downloading or running Ookla's Speedtest CLI.",
-        )
-        self.terms_row.set_active(bool(settings.get("accept_ookla_terms", False)))
-        terms_button = Gtk.Button(label="View terms")
-        terms_button.set_valign(Gtk.Align.CENTER)
-        terms_button.connect(
-            "clicked", lambda *_: Gio.AppInfo.launch_default_for_uri("https://www.speedtest.net/about/eula", None)
-        )
-        self.terms_row.add_suffix(terms_button)
-        self.terms_row.connect("notify::active", self._on_terms_changed)
-
-        cli_ready = find_ookla_command() is not None
-        self.cli_status_row = Adw.ActionRow(
-            title="Ookla CLI ready" if cli_ready else "Ookla CLI not installed",
-            subtitle=(
-                "Speedtest+ will use the official Ookla measurement engine."
-                if cli_ready
-                else "Install a private copy directly from Ookla; no administrator password is needed."
-            ),
-        )
-        self.install_button = Gtk.Button(label="Reinstall" if cli_ready else "Install")
-        self.install_button.set_valign(Gtk.Align.CENTER)
-        self.install_button.set_sensitive(self.terms_row.get_active())
-        self.install_button.connect("clicked", self._on_install_cli, generation)
-        self.cli_status_row.add_suffix(self.install_button)
+        self.setup_row = Adw.ActionRow()
+        setup_button = Gtk.Button(label="Global Settings", valign=Gtk.Align.CENTER)
+        setup_button.connect("clicked", self._open_global_settings)
+        self.setup_row.add_suffix(setup_button)
+        self._refresh_setup_row()
 
         self.server_search_row = Adw.EntryRow(title="Find servers worldwide by location, provider, or ID")
         self.server_search_row.set_text(str(settings.get("server_search", "")))
@@ -389,8 +410,7 @@ class SpeedtestPlusAction(ActionCore):
         self.csv_path_row.connect("notify::text", self._on_csv_path_changed)
 
         return [
-            self.terms_row,
-            self.cli_status_row,
+            self.setup_row,
             self.server_search_row,
             self.server_row,
             self.server_status_row,
@@ -414,43 +434,6 @@ class SpeedtestPlusAction(ActionCore):
         label.add_css_class("dim-label")
         label.set_valign(Gtk.Align.CENTER)
         return label
-
-    def _on_terms_changed(self, row, _param):
-        self._update_settings(accept_ookla_terms=row.get_active())
-        if hasattr(self, "install_button"):
-            self.install_button.set_sensitive(row.get_active())
-
-    def _on_install_cli(self, button, generation):
-        if not (self.get_settings() or {}).get("accept_ookla_terms", False):
-            self.cli_status_row.set_title("Accept Ookla's terms first")
-            return
-        button.set_sensitive(False)
-        self.cli_status_row.set_title("Installing Ookla CLI…")
-        self.cli_status_row.set_subtitle("Downloading securely and verifying the official archive.")
-
-        def worker():
-            error = ""
-            try:
-                install_ookla_cli()
-            except OoklaInstallError as exc:
-                error = str(exc)
-            GLib.idle_add(self._finish_cli_install, error, button, generation)
-
-        threading.Thread(target=worker, daemon=True).start()
-
-    def _finish_cli_install(self, error, button, generation):
-        if generation != self._config_generation:
-            return False
-        button.set_sensitive(self.terms_row.get_active())
-        if error:
-            button.set_label("Try again")
-            self.cli_status_row.set_title("Ookla CLI installation failed")
-            self.cli_status_row.set_subtitle(error)
-        else:
-            button.set_label("Reinstall")
-            self.cli_status_row.set_title("Ookla CLI ready")
-            self.cli_status_row.set_subtitle("Speedtest+ will use the official Ookla measurement engine.")
-        return False
 
     def _on_find_servers(self, button, generation):
         query = self.server_search_row.get_text().strip()
