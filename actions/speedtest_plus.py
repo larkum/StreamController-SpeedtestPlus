@@ -65,6 +65,7 @@ def should_claim_image_control(
 def effective_test_settings(action_settings: dict, global_settings: dict) -> dict:
     settings = dict(action_settings)
     settings["accept_ookla_terms"] = bool(global_settings.get("accept_ookla_terms", False))
+    settings["save_csv"] = bool(global_settings.get("save_csv", False))
     return settings
 
 
@@ -308,6 +309,9 @@ class SpeedtestPlusAction(ActionCore):
         ):
             settings["accept_ookla_terms"] = True
             self.plugin_base.set_settings(settings)
+        if "save_csv" not in settings and action_settings.get("save_csv"):
+            settings["save_csv"] = True
+            self.plugin_base.set_settings(settings)
         return settings
 
     def _refresh_setup_row(self):
@@ -324,6 +328,11 @@ class SpeedtestPlusAction(ActionCore):
         else:
             self.setup_row.set_title("Speedtest+ setup required")
             self.setup_row.set_subtitle("Install the Ookla CLI in Global Settings before running a test.")
+        if hasattr(self, "csv_global_label"):
+            saving = bool(self._global_setup_settings().get("save_csv", False))
+            self.csv_global_label.set_label(
+                "Saving enabled globally" if saving else "Saving disabled globally"
+            )
 
     def _open_global_settings(self, button):
         parent = button.get_root()
@@ -393,21 +402,17 @@ class SpeedtestPlusAction(ActionCore):
         )
         self.interval_row.connect("notify::selected", self._on_interval_changed)
 
-        self.csv_switch = Adw.SwitchRow(
-            title="Save every result to CSV",
-            subtitle="Import the file into LibreOffice Calc, Google Sheets, or another spreadsheet app.",
-        )
-        self.csv_switch.set_active(bool(settings.get("save_csv", False)))
-        self.csv_switch.connect("notify::active", self._on_csv_switch_changed)
-
-        self.csv_path_row = Adw.EntryRow(title="CSV destination")
+        self.csv_path_row = Adw.EntryRow(title="CSV file for this action")
         self.csv_path_row.set_text(str(settings.get("csv_path", "")))
+        self.csv_global_label = self._small_label("")
+        self.csv_path_row.add_suffix(self.csv_global_label)
         browse = Gtk.Button.new_from_icon_name("folder-open-symbolic")
-        browse.set_tooltip_text("Choose CSV destination")
+        browse.set_tooltip_text("Choose this action's CSV file")
         browse.set_valign(Gtk.Align.CENTER)
         browse.connect("clicked", self._on_choose_csv)
         self.csv_path_row.add_suffix(browse)
         self.csv_path_row.connect("notify::text", self._on_csv_path_changed)
+        self._refresh_setup_row()
 
         return [
             self.setup_row,
@@ -417,7 +422,6 @@ class SpeedtestPlusAction(ActionCore):
             self.server_id_row,
             self.units_row,
             self.interval_row,
-            self.csv_switch,
             self.csv_path_row,
         ]
 
@@ -508,9 +512,6 @@ class SpeedtestPlusAction(ActionCore):
         interval = ALLOWED_INTERVALS[min(row.get_selected(), len(ALLOWED_INTERVALS) - 1)]
         self._update_settings(interval_minutes=interval, next_run_epoch=next_run_after(time.time(), interval))
 
-    def _on_csv_switch_changed(self, row, _param):
-        self._update_settings(save_csv=row.get_active())
-
     def _on_csv_path_changed(self, row, _param):
         self._update_settings(csv_path=row.get_text())
 
@@ -537,6 +538,5 @@ class SpeedtestPlusAction(ActionCore):
                 if not path.casefold().endswith(".csv"):
                     path += ".csv"
                 self.csv_path_row.set_text(path)
-                self._update_settings(csv_path=path, save_csv=True)
-                self.csv_switch.set_active(True)
+                self._update_settings(csv_path=path)
         self._file_dialog = None
