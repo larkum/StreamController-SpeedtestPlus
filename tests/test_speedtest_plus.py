@@ -1,5 +1,6 @@
 import csv
 import json
+import re
 import struct
 import tempfile
 import unittest
@@ -41,14 +42,20 @@ def _load_effective_test_settings():
 
     source_path = Path(__file__).parents[1] / "actions" / "speedtest_plus.py"
     module = ast.parse(source_path.read_text(encoding="utf-8"))
-    function = next(
+    functions = [
         node
         for node in module.body
-        if isinstance(node, ast.FunctionDef) and node.name == "effective_test_settings"
+        if isinstance(node, ast.FunctionDef)
+        and node.name
+        in {"effective_test_settings", "safe_csv_filename", "resolved_csv_path"}
+    ]
+    namespace = {"Path": Path, "re": re}
+    exec(compile(ast.Module(body=functions, type_ignores=[]), str(source_path), "exec"), namespace)
+    return (
+        namespace["effective_test_settings"],
+        namespace["safe_csv_filename"],
+        namespace["resolved_csv_path"],
     )
-    namespace = {}
-    exec(compile(ast.Module(body=[function], type_ignores=[]), str(source_path), "exec"), namespace)
-    return namespace["effective_test_settings"]
 
 
 class SpeedtestBackendTests(unittest.TestCase):
@@ -211,34 +218,62 @@ class ArtworkTests(unittest.TestCase):
         self.assertIn("def get_settings_area(self):", plugin_source)
 
     def test_global_terms_choice_is_used_by_every_action(self):
-        effective = _load_effective_test_settings()
+        effective, _safe_name, _resolved_path = _load_effective_test_settings()
         action_settings = {
             "server_id": "123",
             "accept_ookla_terms": True,
             "save_csv": False,
-            "csv_path": "/tmp/this-action.csv",
+            "action_name": "Office",
         }
 
         disabled = effective(
             action_settings, {"accept_ookla_terms": False, "save_csv": False}
         )
         enabled = effective(
-            action_settings, {"accept_ookla_terms": True, "save_csv": True}
+            action_settings,
+            {
+                "accept_ookla_terms": True,
+                "save_csv": True,
+                "csv_location": "/tmp/results",
+                "individual_csv_files": True,
+            },
         )
         self.assertFalse(disabled["accept_ookla_terms"])
         self.assertFalse(disabled["save_csv"])
         self.assertTrue(enabled["accept_ookla_terms"])
         self.assertTrue(enabled["save_csv"])
-        self.assertEqual(enabled["csv_path"], "/tmp/this-action.csv")
+        self.assertEqual(enabled["csv_path"], "/tmp/results/Office.csv")
 
-    def test_csv_enablement_is_global_but_each_action_keeps_its_file(self):
+    def test_global_csv_location_supports_shared_and_individual_files(self):
+        _effective, safe_name, resolved_path = _load_effective_test_settings()
+        action = {"action_name": "Home / Wi-Fi.csv"}
+        global_settings = {"csv_location": "/tmp/results"}
+
+        self.assertEqual(safe_name(action["action_name"]), "Home_Wi-Fi")
+        self.assertEqual(
+            resolved_path(action, global_settings),
+            "/tmp/results/speedtest-results.csv",
+        )
+        global_settings["individual_csv_files"] = True
+        self.assertEqual(
+            resolved_path(action, global_settings),
+            "/tmp/results/Home_Wi-Fi.csv",
+        )
+        self.assertEqual(
+            resolved_path({}, global_settings),
+            "/tmp/results/Speedtest.csv",
+        )
+
+    def test_csv_location_and_mode_are_global_but_action_name_is_local(self):
         root = Path(__file__).parents[1]
         action_source = (root / "actions" / "speedtest_plus.py").read_text(encoding="utf-8")
         plugin_source = (root / "main.py").read_text(encoding="utf-8")
 
         self.assertIn('title="Save results to CSV"', plugin_source)
-        self.assertNotIn("self.csv_switch", action_source)
-        self.assertIn('title="CSV file for this action"', action_source)
+        self.assertIn('title="CSV file location"', plugin_source)
+        self.assertIn('title="Save each action to an individual CSV file"', plugin_source)
+        self.assertIn('title="Action name"', action_source)
+        self.assertNotIn("self.csv_path_row", action_source)
 
     def test_event_ui_replaces_the_redundant_button_controls_annotation(self):
         source = (

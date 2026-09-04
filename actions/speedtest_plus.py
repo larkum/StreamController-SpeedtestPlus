@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+import re
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 
 import gi
 
@@ -66,7 +68,26 @@ def effective_test_settings(action_settings: dict, global_settings: dict) -> dic
     settings = dict(action_settings)
     settings["accept_ookla_terms"] = bool(global_settings.get("accept_ookla_terms", False))
     settings["save_csv"] = bool(global_settings.get("save_csv", False))
+    settings["csv_path"] = resolved_csv_path(action_settings, global_settings)
     return settings
+
+
+def safe_csv_filename(action_name: str) -> str:
+    safe_name = re.sub(r"[^\w.-]+", "_", str(action_name).strip()).strip("._")
+    if safe_name.casefold().endswith(".csv"):
+        safe_name = safe_name[:-4].rstrip("._")
+    return safe_name or "speedtest"
+
+
+def resolved_csv_path(action_settings: dict, global_settings: dict) -> str:
+    location = str(global_settings.get("csv_location", "")).strip()
+    if not location:
+        return ""
+    if global_settings.get("individual_csv_files", False):
+        filename = f"{safe_csv_filename(action_settings.get('action_name') or 'Speedtest')}.csv"
+    else:
+        filename = "speedtest-results.csv"
+    return str(Path(location) / filename)
 
 
 class SpeedtestPlusAction(ActionCore):
@@ -78,7 +99,6 @@ class SpeedtestPlusAction(ActionCore):
         self._server_choices: list[ServerChoice | None] = [None]
         self._loading_server_model = False
         self._syncing_server_id = False
-        self._file_dialog = None
         self._global_settings_dialog = None
         self._config_generation = 0
         self.event_manager.add_event_assigner(
@@ -170,7 +190,7 @@ class SpeedtestPlusAction(ActionCore):
             if settings.get("save_csv"):
                 csv_path = str(settings.get("csv_path", "")).strip()
                 if not csv_path:
-                    csv_error = "Choose a CSV destination in the action settings."
+                    csv_error = "Choose a CSV file location in Global Settings."
                 else:
                     try:
                         append_result(csv_path, result)
@@ -303,14 +323,25 @@ class SpeedtestPlusAction(ActionCore):
     def _global_setup_settings(self):
         settings = dict(self.plugin_base.get_settings() or {})
         action_settings = self.get_settings() or {}
+        global_changed = False
         if (
             "accept_ookla_terms" not in settings
             and action_settings.get("accept_ookla_terms")
         ):
             settings["accept_ookla_terms"] = True
-            self.plugin_base.set_settings(settings)
+            global_changed = True
         if "save_csv" not in settings and action_settings.get("save_csv"):
             settings["save_csv"] = True
+            global_changed = True
+        legacy_path = str(action_settings.get("csv_path", "")).strip()
+        if legacy_path and "csv_location" not in settings:
+            legacy = Path(legacy_path).expanduser()
+            settings["csv_location"] = str(legacy.parent)
+            settings["individual_csv_files"] = True
+            global_changed = True
+            if not str(action_settings.get("action_name", "")).strip():
+                self._update_settings(action_name=legacy.stem)
+        if global_changed:
             self.plugin_base.set_settings(settings)
         return settings
 
@@ -328,10 +359,15 @@ class SpeedtestPlusAction(ActionCore):
         else:
             self.setup_row.set_title("Speedtest+ setup required")
             self.setup_row.set_subtitle("Install the Ookla CLI in Global Settings before running a test.")
-        if hasattr(self, "csv_global_label"):
-            saving = bool(self._global_setup_settings().get("save_csv", False))
-            self.csv_global_label.set_label(
-                "Saving enabled globally" if saving else "Saving disabled globally"
+        if hasattr(self, "csv_output_row"):
+            global_settings = self._global_setup_settings()
+            saving = bool(global_settings.get("save_csv", False))
+            destination = resolved_csv_path(self.get_settings() or {}, global_settings)
+            self.csv_output_row.set_title(
+                "CSV output enabled" if saving else "CSV output disabled globally"
+            )
+            self.csv_output_row.set_subtitle(
+                destination or "Choose a CSV file location in Global Settings."
             )
 
     def _open_global_settings(self, button):
@@ -353,6 +389,13 @@ class SpeedtestPlusAction(ActionCore):
         setup_button.connect("clicked", self._open_global_settings)
         self.setup_row.add_suffix(setup_button)
         self._refresh_setup_row()
+
+        self.action_name_row = Adw.EntryRow(title="Action name")
+        self.action_name_row.set_text(
+            str(settings.get("action_name", "")).strip() or "Speedtest"
+        )
+        self.action_name_row.add_suffix(self._small_label("Used for individual CSV files"))
+        self.action_name_row.connect("notify::text", self._on_action_name_changed)
 
         self.server_search_row = Adw.EntryRow(title="Find servers worldwide by location, provider, or ID")
         self.server_search_row.set_text(str(settings.get("server_search", "")))
@@ -402,27 +445,19 @@ class SpeedtestPlusAction(ActionCore):
         )
         self.interval_row.connect("notify::selected", self._on_interval_changed)
 
-        self.csv_path_row = Adw.EntryRow(title="CSV file for this action")
-        self.csv_path_row.set_text(str(settings.get("csv_path", "")))
-        self.csv_global_label = self._small_label("")
-        self.csv_path_row.add_suffix(self.csv_global_label)
-        browse = Gtk.Button.new_from_icon_name("folder-open-symbolic")
-        browse.set_tooltip_text("Choose this action's CSV file")
-        browse.set_valign(Gtk.Align.CENTER)
-        browse.connect("clicked", self._on_choose_csv)
-        self.csv_path_row.add_suffix(browse)
-        self.csv_path_row.connect("notify::text", self._on_csv_path_changed)
+        self.csv_output_row = Adw.ActionRow()
         self._refresh_setup_row()
 
         return [
             self.setup_row,
+            self.action_name_row,
             self.server_search_row,
             self.server_row,
             self.server_status_row,
             self.server_id_row,
             self.units_row,
             self.interval_row,
-            self.csv_path_row,
+            self.csv_output_row,
         ]
 
     @staticmethod
@@ -512,31 +547,6 @@ class SpeedtestPlusAction(ActionCore):
         interval = ALLOWED_INTERVALS[min(row.get_selected(), len(ALLOWED_INTERVALS) - 1)]
         self._update_settings(interval_minutes=interval, next_run_epoch=next_run_after(time.time(), interval))
 
-    def _on_csv_path_changed(self, row, _param):
-        self._update_settings(csv_path=row.get_text())
-
-    def _on_choose_csv(self, button):
-        root = button.get_root()
-        parent = root if isinstance(root, Gtk.Window) else None
-        dialog = Gtk.FileChooserNative.new(
-            "Choose Speedtest+ CSV destination", parent, Gtk.FileChooserAction.SAVE, "Select", "Cancel"
-        )
-        dialog.set_current_name("speedtest-results.csv")
-        csv_filter = Gtk.FileFilter()
-        csv_filter.set_name("CSV files")
-        csv_filter.add_pattern("*.csv")
-        dialog.add_filter(csv_filter)
-        dialog.connect("response", self._on_csv_dialog_response)
-        self._file_dialog = dialog
-        dialog.show()
-
-    def _on_csv_dialog_response(self, dialog, response):
-        if response == Gtk.ResponseType.ACCEPT:
-            selected = dialog.get_file()
-            path = selected.get_path() if selected else None
-            if path:
-                if not path.casefold().endswith(".csv"):
-                    path += ".csv"
-                self.csv_path_row.set_text(path)
-                self._update_settings(csv_path=path)
-        self._file_dialog = None
+    def _on_action_name_changed(self, row, _param):
+        self._update_settings(action_name=row.get_text())
+        self._refresh_setup_row()
