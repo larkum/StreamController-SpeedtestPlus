@@ -110,6 +110,8 @@ Automatic speed tests can use significant bandwidth, particularly on fast connec
 
 Only one test runs at a time. If another manual or automatic test is requested while Ookla is busy, its key continues to show **Testing…** and the test starts automatically when the preceding test finishes.
 
+You can change deck pages while a test is running. Speedtest+ saves the completed result without repainting an inactive page and displays it when you return.
+
 ## Save results to CSV
 
 Open **Settings → Plugins → Speedtest+ → Open Settings**, enable **Save results to CSV**, and choose the **CSV file location** folder. Speedtest+ creates files there when successful tests finish and appends each later result.

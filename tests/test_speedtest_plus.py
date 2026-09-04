@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from csv_logger import append_result
+from csv_logger import append_result, spreadsheet_safe_text
 from ookla_installer import OoklaInstallError, archive_details
 from scheduling import is_due, next_run_after, should_run_initial_test, system_boot_id
 from speedtest_backend import (
@@ -35,6 +35,21 @@ def _load_should_claim_image_control():
     namespace = {}
     exec(compile(ast.Module(body=[function], type_ignores=[]), str(source_path), "exec"), namespace)
     return namespace["should_claim_image_control"]
+
+
+def _load_should_render_action():
+    import ast
+
+    source_path = Path(__file__).parents[1] / "actions" / "speedtest_plus.py"
+    module = ast.parse(source_path.read_text(encoding="utf-8"))
+    function = next(
+        node
+        for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "should_render_action"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(source_path), "exec"), namespace)
+    return namespace["should_render_action"]
 
 
 def _load_effective_test_settings():
@@ -198,6 +213,11 @@ class CsvTests(unittest.TestCase):
         self.assertEqual(rows[0]["ping_ms"], "12.35")
         self.assertEqual(rows[0]["server_id"], "123")
 
+    def test_csv_text_cannot_be_interpreted_as_a_spreadsheet_formula(self):
+        self.assertEqual(spreadsheet_safe_text("=IMPORTXML(...)"), "'=IMPORTXML(...)")
+        self.assertEqual(spreadsheet_safe_text("  +1+1"), "'  +1+1")
+        self.assertEqual(spreadsheet_safe_text("Dallas, TX"), "Dallas, TX")
+
 
 class ArtworkTests(unittest.TestCase):
     def test_action_name_locale_uses_streamcontroller_semicolon_format(self):
@@ -289,6 +309,13 @@ class ArtworkTests(unittest.TestCase):
         self.assertIn("TEST_LOCK.acquire()", source)
         self.assertNotIn("TEST_LOCK.acquire(blocking=False)", source)
         self.assertNotIn("Another speed test is already running.", source)
+
+    def test_background_completion_only_repaints_the_active_page(self):
+        should_render = _load_should_render_action()
+
+        self.assertTrue(should_render(False, True))
+        self.assertFalse(should_render(False, False))
+        self.assertFalse(should_render(True, True))
 
     def test_unassigned_image_control_is_claimed_only_on_a_plain_single_action_key(self):
         should_claim = _load_should_claim_image_control()

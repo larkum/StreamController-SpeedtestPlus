@@ -21,6 +21,17 @@ CSV_FIELDS = [
     "engine",
 ]
 
+CSV_TEXT_FIELDS = ("server_id", "server_name", "server_location", "result_url", "engine")
+
+
+def spreadsheet_safe_text(value: object) -> str:
+    """Prevent imported text fields from being interpreted as spreadsheet formulas."""
+    text = str(value or "")
+    stripped = text.lstrip()
+    if text.startswith(("\t", "\r", "\n")) or stripped.startswith(("=", "+", "-", "@")):
+        return f"'{text}"
+    return text
+
 
 def append_result(path: str, result: SpeedtestResult) -> None:
     destination = Path(path).expanduser()
@@ -36,4 +47,6 @@ def append_result(path: str, result: SpeedtestResult) -> None:
         row["ping_ms"] = f"{result.ping_ms:.2f}"
         row["download_mbps"] = f"{result.download_mbps:.2f}"
         row["upload_mbps"] = f"{result.upload_mbps:.2f}"
+        for field in CSV_TEXT_FIELDS:
+            row[field] = spreadsheet_safe_text(row.get(field, ""))
         writer.writerow(row)

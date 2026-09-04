@@ -135,7 +135,7 @@ class SpeedtestPlusPlugin(PluginBase):
 
         csv_row = Adw.SwitchRow(
             title="Save results to CSV",
-            subtitle="Each Speedtest+ action chooses its own CSV file and can keep a separate history.",
+            subtitle="Save successful results in the folder below, using one shared file or a file for each action.",
         )
         csv_row.set_active(bool(settings.get("save_csv", False)))
 

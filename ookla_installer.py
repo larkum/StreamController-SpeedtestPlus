@@ -61,7 +61,7 @@ def install_ookla_cli() -> Path:
     archive_path: Path | None = None
     candidate_path: Path | None = None
     try:
-        request = urllib.request.Request(url, headers={"User-Agent": "StreamController-SpeedtestPlus/0.2"})
+        request = urllib.request.Request(url, headers={"User-Agent": "StreamController-SpeedtestPlus/0.1.0"})
         with urllib.request.urlopen(request, timeout=60) as response:
             with tempfile.NamedTemporaryFile(dir=destination.parent, suffix=".tgz", delete=False) as archive:
                 archive_path = Path(archive.name)

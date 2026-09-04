@@ -230,7 +230,7 @@ def find_ookla_command() -> list[str] | None:
 def run_ookla(server_id: str = "") -> SpeedtestResult:
     command = find_ookla_command()
     if not command:
-        raise SpeedtestError("Install the Ookla Speedtest CLI from this action's settings before running a test.")
+        raise SpeedtestError("Install the Ookla Speedtest CLI in Settings > Plugins > Speedtest+ before running a test.")
 
     args = [
         *command,
@@ -259,5 +259,5 @@ def run_speedtest(settings: dict) -> SpeedtestResult:
     server_id = str(settings.get("server_id", "")).strip()
     accepted = bool(settings.get("accept_ookla_terms", False))
     if not accepted:
-        raise SpeedtestError("Accept the Ookla CLI terms in the action settings before running a test.")
+        raise SpeedtestError("Accept the Ookla CLI terms in Settings > Plugins > Speedtest+ before running a test.")
     return run_ookla(server_id)

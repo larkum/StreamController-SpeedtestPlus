@@ -64,6 +64,11 @@ def should_claim_image_control(
     return image_control_index is None and not is_multi_action and not has_user_asset
 
 
+def should_render_action(is_removed: bool, is_present: bool) -> bool:
+    """Only repaint an action while its key belongs to the active page."""
+    return not is_removed and is_present
+
+
 def effective_test_settings(action_settings: dict, global_settings: dict) -> dict:
     settings = dict(action_settings)
     settings["accept_ookla_terms"] = bool(global_settings.get("accept_ookla_terms", False))
@@ -96,6 +101,7 @@ class SpeedtestPlusAction(ActionCore):
         self.has_configuration = True
         self.allow_event_configuration = True
         self._running = False
+        self._removed = False
         self._server_choices: list[ServerChoice | None] = [None]
         self._loading_server_model = False
         self._syncing_server_id = False
@@ -119,6 +125,7 @@ class SpeedtestPlusAction(ActionCore):
         )
 
     def on_ready(self):
+        self._removed = False
         settings = self.get_settings() or {}
         interval = int(settings.get("interval_minutes", 0) or 0)
         boot_id = system_boot_id()
@@ -130,10 +137,22 @@ class SpeedtestPlusAction(ActionCore):
             GLib.idle_add(self._start_test)
         elif interval and not settings.get("next_run_epoch"):
             self._update_settings(next_run_epoch=next_run_after(time.time(), interval))
-        self._render_saved_result()
+        if self._running:
+            self._render_testing()
+        else:
+            self._render_saved_result()
 
     def on_update(self):
-        self._render_saved_result()
+        if self._running:
+            self._render_testing()
+        else:
+            self._render_saved_result()
+
+    def on_remove(self):
+        self._removed = True
+
+    def on_removed_from_cache(self):
+        self._removed = True
 
     def on_tick(self):
         if self._running:
@@ -150,6 +169,11 @@ class SpeedtestPlusAction(ActionCore):
             self.get_settings() or {}, self._global_setup_settings()
         )
         self._running = True
+        if self._can_render():
+            self._render_testing()
+        threading.Thread(target=self._run_test_worker, args=(settings,), daemon=True).start()
+
+    def _render_testing(self):
         self.hide_error()
         self.set_media(image=None, update=False)
         self.set_top_label(
@@ -157,7 +181,12 @@ class SpeedtestPlusAction(ActionCore):
         )
         self.set_center_label("Testing…", color=DOWNLOAD_COLOR, font_size=14, update=False)
         self.set_bottom_label("Please wait", color=UPLOAD_COLOR, font_size=9)
-        threading.Thread(target=self._run_test_worker, args=(settings,), daemon=True).start()
+
+    def _can_render(self):
+        try:
+            return should_render_action(self._removed, bool(self.get_is_present()))
+        except Exception:
+            return False
 
     def _open_last_result(self):
         raw = (self.get_settings() or {}).get("last_result")
@@ -175,7 +204,8 @@ class SpeedtestPlusAction(ActionCore):
             GLib.timeout_add_seconds(2, self._hide_transient_error)
 
     def _hide_transient_error(self):
-        self.hide_error()
+        if self._can_render():
+            self.hide_error()
         return False
 
     def _run_test_worker(self, settings: dict):
@@ -214,7 +244,14 @@ class SpeedtestPlusAction(ActionCore):
         }
         if result is not None:
             updates["last_result"] = result.to_dict()
-        self._update_settings(**updates)
+        try:
+            self._update_settings(**updates)
+        except Exception:
+            # The action can be deleted while the CLI process is still finishing.
+            log.exception("Speedtest+ could not save a result after its action was removed")
+            return False
+        if not self._can_render():
+            return False
         if error:
             self.set_top_label("Speedtest+", color=TIME_PING_COLOR, font_size=11, update=False)
             self.set_center_label("Error", color=UPLOAD_COLOR, font_size=16, update=False)

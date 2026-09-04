@@ -12,7 +12,7 @@
     "en_US": "An enhanced, unofficial community fork of the original StreamController Speedtest plugin."
   },
   "copyright": "Copyright (C) Core447 and Larkum",
-  "support": "https://github.com/larkum/StreamController-SpeedtestPlus/issues",
+  "support": "https://github.com/larkum/StreamController-SpeedtestPlus",
   "acknowledgements": {
     "Project": ["StreamController"]
   }

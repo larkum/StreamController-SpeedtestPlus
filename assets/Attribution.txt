@@ -1,2 +1,5 @@
-All images in this folder (and subfolders) are from fonts.google.com and licensed under the Apache License, Version 2.0.
-You can retrieve a copy of the license at https://www.apache.org/licenses/LICENSE-2.0.
+speed.png is from Google Material Icons and is licensed under Apache-2.0.
+
+speedplus-icon.png and store/Thumbnail.png are original Speedtest+ artwork generated with OpenAI image generation and are distributed under GPL-3.0 with the plugin.
+
+Full source links, copyright details, licences, and descriptions are recorded in the root attribution.json file.
