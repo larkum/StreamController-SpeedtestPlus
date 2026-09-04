@@ -282,6 +282,14 @@ class ArtworkTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertNotIn('title="Button controls"', source)
 
+    def test_additional_tests_wait_for_the_shared_test_lock(self):
+        source = (
+            Path(__file__).parents[1] / "actions" / "speedtest_plus.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("TEST_LOCK.acquire()", source)
+        self.assertNotIn("TEST_LOCK.acquire(blocking=False)", source)
+        self.assertNotIn("Another speed test is already running.", source)
+
     def test_unassigned_image_control_is_claimed_only_on_a_plain_single_action_key(self):
         should_claim = _load_should_claim_image_control()
 

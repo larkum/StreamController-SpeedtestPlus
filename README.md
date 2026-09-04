@@ -17,6 +17,7 @@ Speedtest+ is an enhanced GPL-3.0 fork of the original [StreamController Speedte
 - Latest Speedtest.net result opened with a long key hold
 - Automatic tests every 5, 10, 15, 30, or 60 minutes
 - An initial test after Linux starts when automatic testing is enabled
+- Additional tests wait safely when another Speedtest+ action is already running
 - Optional CSV history saved to a destination you choose
 - Background testing that keeps StreamController responsive
 - Colour-coded, automatically fitted key labels
@@ -107,6 +108,8 @@ Select **Manual only** to disable scheduled tests. A short press still starts a 
 
 Automatic speed tests can use significant bandwidth, particularly on fast connections or short schedules. Choose an interval that suits your connection and data allowance.
 
+Only one test runs at a time. If another manual or automatic test is requested while Ookla is busy, its key continues to show **Testing…** and the test starts automatically when the preceding test finishes.
+
 ## Save results to CSV
 
 Open **Settings → Plugins → Speedtest+ → Open Settings**, enable **Save results to CSV**, and choose the **CSV file location** folder. Speedtest+ creates files there when successful tests finish and appends each later result.
@@ -137,7 +140,7 @@ Tests connect to Speedtest.net and the selected test server. Server discovery al
 - **The CLI will not install:** confirm the internet connection and that the processor is listed under Requirements, then try **Install** or **Reinstall** again.
 - **A server search returns no results:** try a broader city, region, country, provider, or state abbreviation, then press refresh again.
 - **A remembered server stops working:** select automatic server choice or search for another server; individual Speedtest.net servers can become unavailable.
-- **No CSV row appears:** choose a writable **CSV file location** and make sure **Save results to CSV** is enabled in global plugin settings. Only successful tests are saved.
+- **No CSV file appears:** choose a writable **CSV file location** and make sure **Save results to CSV** is enabled in global plugin settings. Only successful tests are saved.
 - **A long hold does nothing:** run a successful test first. Only valid HTTPS result links on Speedtest.net are opened.
 
 ## Licence and attribution

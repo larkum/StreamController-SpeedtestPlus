@@ -179,9 +179,7 @@ class SpeedtestPlusAction(ActionCore):
         return False
 
     def _run_test_worker(self, settings: dict):
-        if not TEST_LOCK.acquire(blocking=False):
-            GLib.idle_add(self._finish_test, None, "Another speed test is already running.", "")
-            return
+        TEST_LOCK.acquire()
         result = None
         error = ""
         csv_error = ""
