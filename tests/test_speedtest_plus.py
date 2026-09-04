@@ -274,6 +274,7 @@ class ArtworkTests(unittest.TestCase):
         self.assertIn('title="Save each action to an individual CSV file"', plugin_source)
         self.assertIn('title="Action name"', action_source)
         self.assertNotIn("self.csv_path_row", action_source)
+        self.assertNotIn("self.csv_output_row", action_source)
 
     def test_event_ui_replaces_the_redundant_button_controls_annotation(self):
         source = (
