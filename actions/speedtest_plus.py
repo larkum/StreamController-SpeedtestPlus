@@ -359,16 +359,6 @@ class SpeedtestPlusAction(ActionCore):
         else:
             self.setup_row.set_title("Speedtest+ setup required")
             self.setup_row.set_subtitle("Install the Ookla CLI in Global Settings before running a test.")
-        if hasattr(self, "csv_output_row"):
-            global_settings = self._global_setup_settings()
-            saving = bool(global_settings.get("save_csv", False))
-            destination = resolved_csv_path(self.get_settings() or {}, global_settings)
-            self.csv_output_row.set_title(
-                "CSV output enabled" if saving else "CSV output disabled globally"
-            )
-            self.csv_output_row.set_subtitle(
-                destination or "Choose a CSV file location in Global Settings."
-            )
 
     def _open_global_settings(self, button):
         parent = button.get_root()
@@ -445,9 +435,6 @@ class SpeedtestPlusAction(ActionCore):
         )
         self.interval_row.connect("notify::selected", self._on_interval_changed)
 
-        self.csv_output_row = Adw.ActionRow()
-        self._refresh_setup_row()
-
         return [
             self.setup_row,
             self.action_name_row,
@@ -457,7 +444,6 @@ class SpeedtestPlusAction(ActionCore):
             self.server_id_row,
             self.units_row,
             self.interval_row,
-            self.csv_output_row,
         ]
 
     @staticmethod
