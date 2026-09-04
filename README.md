@@ -111,7 +111,7 @@ Automatic speed tests can use significant bandwidth, particularly on fast connec
 
 Open **Settings → Plugins → Speedtest+ → Open Settings**, enable **Save results to CSV**, and choose the **CSV file location** folder. Speedtest+ creates files there when successful tests finish and appends each later result.
 
-Enable **Save each action to an individual CSV file** to use each action's **Action name** as its filename—for example `Home.csv`, `Office.csv`, and `Automatic.csv`. When the option is disabled, every action appends to `speedtest-results.csv` in the selected folder. Each file can be imported into LibreOffice Calc, Google Sheets, or another spreadsheet application.
+Enable **Save each action to an individual CSV file** to use each action's **Action name** as its filename. Location-based names make each file easy to identify—for example `London.csv`, `Texas.csv`, `Paris.csv`, `Automated.csv`, or `London-automated.csv`. When the option is disabled, every action appends to `speedtest-results.csv` in the selected folder. Each file can be imported into LibreOffice Calc, Google Sheets, or another spreadsheet application.
 
 The CSV contains:
 
