@@ -212,18 +212,33 @@ class ArtworkTests(unittest.TestCase):
 
     def test_global_terms_choice_is_used_by_every_action(self):
         effective = _load_effective_test_settings()
-        action_settings = {"server_id": "123", "accept_ookla_terms": True}
+        action_settings = {
+            "server_id": "123",
+            "accept_ookla_terms": True,
+            "save_csv": False,
+            "csv_path": "/tmp/this-action.csv",
+        }
 
-        self.assertFalse(
-            effective(action_settings, {"accept_ookla_terms": False})[
-                "accept_ookla_terms"
-            ]
+        disabled = effective(
+            action_settings, {"accept_ookla_terms": False, "save_csv": False}
         )
-        self.assertTrue(
-            effective(action_settings, {"accept_ookla_terms": True})[
-                "accept_ookla_terms"
-            ]
+        enabled = effective(
+            action_settings, {"accept_ookla_terms": True, "save_csv": True}
         )
+        self.assertFalse(disabled["accept_ookla_terms"])
+        self.assertFalse(disabled["save_csv"])
+        self.assertTrue(enabled["accept_ookla_terms"])
+        self.assertTrue(enabled["save_csv"])
+        self.assertEqual(enabled["csv_path"], "/tmp/this-action.csv")
+
+    def test_csv_enablement_is_global_but_each_action_keeps_its_file(self):
+        root = Path(__file__).parents[1]
+        action_source = (root / "actions" / "speedtest_plus.py").read_text(encoding="utf-8")
+        plugin_source = (root / "main.py").read_text(encoding="utf-8")
+
+        self.assertIn('title="Save results to CSV"', plugin_source)
+        self.assertNotIn("self.csv_switch", action_source)
+        self.assertIn('title="CSV file for this action"', action_source)
 
     def test_event_ui_replaces_the_redundant_button_controls_annotation(self):
         source = (

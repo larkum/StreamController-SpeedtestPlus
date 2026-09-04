@@ -9,7 +9,7 @@
       "settings": {
         "server_id": "Remember a worldwide Speedtest.net server, enter a known server ID, or use Ookla's automatic selection.",
         "interval_minutes": "Choose the automatic test interval.",
-        "csv_path": "Optional CSV destination for result history."
+        "csv_path": "Choose an individual CSV file for this action when CSV saving is enabled globally."
       }
     }
   }

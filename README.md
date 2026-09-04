@@ -109,7 +109,9 @@ Automatic speed tests can use significant bandwidth, particularly on fast connec
 
 ## Save results to CSV
 
-Enable **Save every result to CSV**, then choose a destination. Speedtest+ creates the file when the next successful test finishes and appends each later result. The file can be imported into LibreOffice Calc, Google Sheets, or another spreadsheet application.
+Enable **Save results to CSV** in **Settings → Plugins → Speedtest+ → Open Settings**. Then use **CSV file for this action** in each action panel to choose that button's destination. Speedtest+ creates the file when the next successful test finishes and appends each later result.
+
+CSV saving is switched on or off globally, but the destination belongs to the individual action. This means separate Speedtest+ buttons can maintain independent files such as `home.csv`, `office.csv`, and `automatic.csv`. Each file can be imported into LibreOffice Calc, Google Sheets, or another spreadsheet application.
 
 The CSV contains:
 
@@ -135,7 +137,7 @@ Tests connect to Speedtest.net and the selected test server. Server discovery al
 - **The CLI will not install:** confirm the internet connection and that the processor is listed under Requirements, then try **Install** or **Reinstall** again.
 - **A server search returns no results:** try a broader city, region, country, provider, or state abbreviation, then press refresh again.
 - **A remembered server stops working:** select automatic server choice or search for another server; individual Speedtest.net servers can become unavailable.
-- **No CSV row appears:** choose a writable destination and make sure **Save every result to CSV** is enabled. Only successful tests are saved.
+- **No CSV row appears:** choose a writable file in that action and make sure **Save results to CSV** is enabled in global plugin settings. Only successful tests are saved.
 - **A long hold does nothing:** run a successful test first. Only valid HTTPS result links on Speedtest.net are opened.
 
 ## Licence and attribution

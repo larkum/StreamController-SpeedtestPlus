@@ -40,7 +40,6 @@ class SpeedtestPlusPlugin(PluginBase):
                         "values": [0, 5, 10, 15, 30, 60],
                     },
                     "last_automatic_boot_id": {"type": "string", "default": ""},
-                    "save_csv": {"type": "boolean", "default": False},
                     "csv_path": {"type": "string", "default": ""},
                 },
                 action_support={
@@ -60,8 +59,8 @@ class SpeedtestPlusPlugin(PluginBase):
 
     def get_settings_area(self):
         group = Adw.PreferencesGroup(
-            title="Ookla Speedtest CLI",
-            description="One-time setup shared by every Speedtest+ action.",
+            title="Global Speedtest+ settings",
+            description="These choices are shared by every Speedtest+ action.",
         )
         settings = self.get_settings() or {}
 
@@ -133,6 +132,20 @@ class SpeedtestPlusPlugin(PluginBase):
         terms_row.connect("notify::active", terms_changed)
         install_button.connect("clicked", install_clicked)
         refresh_cli_row()
+
+        csv_row = Adw.SwitchRow(
+            title="Save results to CSV",
+            subtitle="Each Speedtest+ action chooses its own CSV file and can keep a separate history.",
+        )
+        csv_row.set_active(bool(settings.get("save_csv", False)))
+
+        def csv_changed(row, _param):
+            updated = dict(self.get_settings() or {})
+            updated["save_csv"] = row.get_active()
+            self.set_settings(updated)
+
+        csv_row.connect("notify::active", csv_changed)
+        group.add(csv_row)
         return group
 
     def open_global_settings(self, parent=None):
