@@ -36,6 +36,21 @@ def _load_should_claim_image_control():
     return namespace["should_claim_image_control"]
 
 
+def _load_effective_test_settings():
+    import ast
+
+    source_path = Path(__file__).parents[1] / "actions" / "speedtest_plus.py"
+    module = ast.parse(source_path.read_text(encoding="utf-8"))
+    function = next(
+        node
+        for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "effective_test_settings"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(source_path), "exec"), namespace)
+    return namespace["effective_test_settings"]
+
+
 class SpeedtestBackendTests(unittest.TestCase):
     def test_speed_units_are_forced_to_decimal_mbps(self):
         self.assertEqual(bytes_per_second_to_mbps(1_000_000), 8.0)
@@ -178,6 +193,38 @@ class CsvTests(unittest.TestCase):
 
 
 class ArtworkTests(unittest.TestCase):
+    def test_action_name_locale_uses_streamcontroller_semicolon_format(self):
+        locale_path = Path(__file__).parents[1] / "locales.csv"
+        with locale_path.open(newline="", encoding="utf-8") as handle:
+            rows = list(csv.reader(handle, delimiter=";"))
+        self.assertIn(["actions.speedtest_plus.name", "Speedtest+"], rows)
+
+    def test_ookla_setup_is_global_with_an_action_page_shortcut(self):
+        root = Path(__file__).parents[1]
+        action_source = (root / "actions" / "speedtest_plus.py").read_text(encoding="utf-8")
+        plugin_source = (root / "main.py").read_text(encoding="utf-8")
+
+        self.assertIn('label="Global Settings"', action_source)
+        self.assertIn('"Speedtest+ setup required"', action_source)
+        self.assertNotIn("self.terms_row", action_source)
+        self.assertIn("self.has_plugin_settings = True", plugin_source)
+        self.assertIn("def get_settings_area(self):", plugin_source)
+
+    def test_global_terms_choice_is_used_by_every_action(self):
+        effective = _load_effective_test_settings()
+        action_settings = {"server_id": "123", "accept_ookla_terms": True}
+
+        self.assertFalse(
+            effective(action_settings, {"accept_ookla_terms": False})[
+                "accept_ookla_terms"
+            ]
+        )
+        self.assertTrue(
+            effective(action_settings, {"accept_ookla_terms": True})[
+                "accept_ookla_terms"
+            ]
+        )
+
     def test_event_ui_replaces_the_redundant_button_controls_annotation(self):
         source = (
             Path(__file__).parents[1] / "actions" / "speedtest_plus.py"

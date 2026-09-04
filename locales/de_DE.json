@@ -1,4 +1,4 @@
 {
-    "plugin.name": "Speedtest",
-    "actions.speedtest.name": "Speedtest"
+    "plugin.name": "Speedtest+",
+    "actions.speedtest_plus.name": "Speedtest+"
 }
