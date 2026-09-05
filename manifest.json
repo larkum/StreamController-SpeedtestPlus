@@ -7,7 +7,7 @@
   "github": "https://github.com/larkum/StreamController-SpeedtestPlus",
   "thumbnail": "store/Thumbnail.png",
   "descriptions": {
-    "en_US": "Run official Ookla CLI tests, search servers worldwide, schedule automatic checks, and save results to CSV."
+    "en_US": "Run official Ookla CLI tests, choose nearby servers, schedule automatic checks, and save results to CSV."
   },
   "short-descriptions": {
     "en_US": "Official Ookla tests with schedules and CSV history"

@@ -71,7 +71,7 @@ def should_render_action(is_removed: bool, is_present: bool) -> bool:
 
 def effective_test_settings(action_settings: dict, global_settings: dict) -> dict:
     settings = dict(action_settings)
-    settings["accept_ookla_terms"] = bool(global_settings.get("accept_ookla_terms", False))
+    settings["accept_ookla_terms"] = bool(global_settings.get("accept_ookla_policies", False))
     settings["save_csv"] = bool(global_settings.get("save_csv", False))
     settings["csv_path"] = resolved_csv_path(action_settings, global_settings)
     return settings
@@ -359,12 +359,6 @@ class SpeedtestPlusAction(ActionCore):
         settings = dict(self.plugin_base.get_settings() or {})
         action_settings = self.get_settings() or {}
         global_changed = False
-        if (
-            "accept_ookla_terms" not in settings
-            and action_settings.get("accept_ookla_terms")
-        ):
-            settings["accept_ookla_terms"] = True
-            global_changed = True
         if "save_csv" not in settings and action_settings.get("save_csv"):
             settings["save_csv"] = True
             global_changed = True
@@ -383,14 +377,14 @@ class SpeedtestPlusAction(ActionCore):
     def _refresh_setup_row(self):
         if not hasattr(self, "setup_row"):
             return
-        accepted = bool(self._global_setup_settings().get("accept_ookla_terms", False))
+        accepted = bool(self._global_setup_settings().get("accept_ookla_policies", False))
         cli_ready = find_ookla_command() is not None
         if accepted and cli_ready:
             self.setup_row.set_title("Global setup complete")
             self.setup_row.set_subtitle("Ookla CLI is ready for all Speedtest+ actions.")
         elif not accepted:
             self.setup_row.set_title("Speedtest+ setup required")
-            self.setup_row.set_subtitle("Accept Ookla's terms in Global Settings before running a test.")
+            self.setup_row.set_subtitle("Review and accept Ookla's policies in Global Settings before running a test.")
         else:
             self.setup_row.set_title("Speedtest+ setup required")
             self.setup_row.set_subtitle("Install the Ookla CLI in Global Settings before running a test.")
@@ -422,10 +416,10 @@ class SpeedtestPlusAction(ActionCore):
         self.action_name_row.add_suffix(self._small_label("Used for individual CSV files"))
         self.action_name_row.connect("notify::text", self._on_action_name_changed)
 
-        self.server_search_row = Adw.EntryRow(title="Find servers worldwide by location, provider, or ID")
+        self.server_search_row = Adw.EntryRow(title="Filter Ookla's nearby servers")
         self.server_search_row.set_text(str(settings.get("server_search", "")))
         refresh = Gtk.Button.new_from_icon_name("view-refresh-symbolic")
-        refresh.set_tooltip_text("Search available Speedtest.net servers")
+        refresh.set_tooltip_text("Load nearby servers from the Ookla CLI")
         refresh.set_valign(Gtk.Align.CENTER)
         refresh.connect("clicked", self._on_find_servers, generation)
         self.server_search_row.add_suffix(refresh)
@@ -446,8 +440,8 @@ class SpeedtestPlusAction(ActionCore):
         )
         self.server_row.connect("notify::selected", self._on_server_changed)
         self.server_status_row = Adw.ActionRow(
-            title="Worldwide server search ready",
-            subtitle="Enter a city, state, country, provider, or server ID and press refresh.",
+            title="Nearby server list ready",
+            subtitle="Optionally enter a location, provider, or server ID, then press refresh.",
         )
 
         self.server_id_row = Adw.EntryRow(title="Specific server ID (optional)")
@@ -499,7 +493,7 @@ class SpeedtestPlusAction(ActionCore):
         query = self.server_search_row.get_text().strip()
         self._update_settings(server_search=query)
         button.set_sensitive(False)
-        self.server_status_row.set_title("Searching Speedtest.net servers worldwide…")
+        self.server_status_row.set_title("Loading nearby servers from Ookla…")
         self.server_status_row.set_subtitle("This can take a few seconds.")
 
         def worker():
@@ -534,7 +528,7 @@ class SpeedtestPlusAction(ActionCore):
             self.server_row.set_selected(selected_index)
         finally:
             self._loading_server_model = False
-        self.server_status_row.set_title(f"{len(choices)} matching servers")
+        self.server_status_row.set_title(f"{len(choices)} matching nearby servers")
         self.server_status_row.set_subtitle(
             "Select one above, use a known server ID below, or leave automatic selection enabled."
         )

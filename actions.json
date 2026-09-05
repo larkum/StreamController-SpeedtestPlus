@@ -1,14 +1,14 @@
 {
   "plugin": {
     "description": "Runs accurate, configurable Speedtest.net checks and can keep a CSV history.",
-    "requirements": "Internet access and acceptance of Ookla's CLI terms for personal, non-commercial use."
+    "requirements": "Internet access and acceptance of Ookla's EULA, Terms of Use and Privacy Policy for personal, non-commercial use."
   },
   "actions": {
     "SpeedtestPlus": {
       "description": "Shows the test time, ping, download and upload. Press to run manually or choose a 5, 10, 15, 30 or 60 minute schedule.",
       "settings": {
         "action_name": "Names this action and its CSV file when individual CSV files are enabled.",
-        "server_id": "Remember a worldwide Speedtest.net server, enter a known server ID, or use Ookla's automatic selection.",
+        "server_id": "Choose a nearby server returned by Ookla, enter a known server ID, or use automatic selection.",
         "interval_minutes": "Choose the automatic test interval.",
         "csv_output": "CSV saving, location, and shared-versus-individual mode are configured globally."
       }

@@ -17,6 +17,7 @@ from speedtest_backend import (
     bytes_per_second_to_mbps,
     filter_servers,
     is_speedtest_result_url,
+    parse_ookla_server_list,
     parse_ookla_json,
     run_speedtest,
 )
@@ -120,6 +121,22 @@ class SpeedtestBackendTests(unittest.TestCase):
         self.assertEqual(filter_servers(servers, "Lone Star"), [servers[0]])
         self.assertEqual(filter_servers(servers, "202"), [servers[1]])
 
+    def test_official_cli_nearby_server_table_is_parsed(self):
+        payload = """Closest servers:
+
+    ID  Name                           Location             Country
+==============================================================================
+ 25119  ServerHouse                    Fareham              United Kingdom
+ 55637  University of Oxford, IT Services Abingdon             United Kingdom
+"""
+
+        servers = parse_ookla_server_list(payload)
+
+        self.assertEqual(servers[0], ServerChoice("25119", "ServerHouse", "Fareham", "United Kingdom"))
+        self.assertEqual(servers[1].id, "55637")
+        self.assertIn("Abingdon", servers[1].name)
+        self.assertEqual(servers[1].country, "United Kingdom")
+
     def test_saved_results_round_trip_and_accept_numeric_strings(self):
         saved = {
             "timestamp": "2026-08-31T12:34:56Z",
@@ -143,7 +160,7 @@ class SpeedtestBackendTests(unittest.TestCase):
 
     @patch("speedtest_backend.run_ookla")
     def test_terms_are_required_before_running_ookla(self, ookla):
-        with self.assertRaisesRegex(SpeedtestError, "Accept the Ookla CLI terms"):
+        with self.assertRaisesRegex(SpeedtestError, "Accept Ookla's policies"):
             run_speedtest({"accept_ookla_terms": False})
         ookla.assert_not_called()
 
@@ -247,12 +264,12 @@ class ArtworkTests(unittest.TestCase):
         }
 
         disabled = effective(
-            action_settings, {"accept_ookla_terms": False, "save_csv": False}
+            action_settings, {"accept_ookla_policies": False, "save_csv": False}
         )
         enabled = effective(
             action_settings,
             {
-                "accept_ookla_terms": True,
+                "accept_ookla_policies": True,
                 "save_csv": True,
                 "csv_location": "/tmp/results",
                 "individual_csv_files": True,

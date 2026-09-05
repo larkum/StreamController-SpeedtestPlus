@@ -11,7 +11,7 @@ Speedtest+ is an enhanced GPL-3.0 fork of the original [StreamController Speedte
 - Official Ookla Speedtest CLI measurement engine
 - Ping, download speed, upload speed, and test time on one key
 - Download and upload results displayed in decimal Mbps; ping displayed in ms
-- Worldwide server search by city, country, US state, provider, or server ID
+- Nearby server choices loaded through the official Ookla CLI, with filtering by location, provider, or server ID
 - Automatic best-server selection or a remembered server for each action
 - Manual tests with a short key press
 - Latest Speedtest.net result opened with a long key hold
@@ -27,7 +27,7 @@ Speedtest+ is an enhanced GPL-3.0 fork of the original [StreamController Speedte
 - Linux
 - StreamController 1.5.0-beta.16 or newer
 - An internet connection
-- Acceptance of Ookla's CLI terms for personal, non-commercial use
+- Acceptance of Ookla's EULA, Terms of Use and Privacy Policy for personal, non-commercial use
 
 The built-in installer supports x86_64/AMD64, ARM64/AArch64, ARMv7, ARMv6, and 32-bit x86 Linux systems.
 
@@ -67,27 +67,30 @@ If a previous manual copy is already installed, close StreamController and repla
 ## Set up Speedtest+
 
 1. Open **Settings → Plugins → Speedtest+ → Open Settings**.
-2. Select **View terms**, read Ookla's terms, and enable **I accept Ookla's CLI terms** if you agree.
-3. Select **Install** beside **Ookla CLI not installed**.
-4. Add **Speedtest+ → Speedtest+** to a key.
-5. Leave the server set to **Auto-select the best server**, or search for a specific server in the action settings.
-6. Briefly press the key to run your first test.
+2. Open the **EULA**, **Terms**, and **Privacy** links and read all three Ookla policies.
+3. If you agree and your use is personal and non-commercial, enable the policy-acceptance switch.
+4. Select **Install** beside **Ookla CLI not installed**.
+5. Add **Speedtest+ → Speedtest+** to a key.
+6. Leave the server set to **Auto-select the best server**, choose a nearby server, or enter a known server ID.
+7. Briefly press the key to run your first test.
 
-The terms choice and CLI installation are global and shared by every Speedtest+ action. Each action starts with a setup-status row and a **Global Settings** button, so incomplete setup is clearly identified and can be opened directly from the action panel.
+The policy choice and CLI installation are global and shared by every Speedtest+ action. Each action starts with a setup-status row and a **Global Settings** button, so incomplete setup is clearly identified and can be opened directly from the action panel.
+
+Users upgrading from an earlier preview must review the expanded policy links and confirm the new acceptance switch once.
 
 The installer downloads the official Ookla CLI directly from Ookla, verifies the download, and keeps a private copy in your user data. It does not need an administrator password and does not modify the operating system. If the official CLI is already installed on the system, Speedtest+ can use it.
 
 ## Choose a server
 
-Automatic selection lets Ookla choose a suitable nearby server. To select your own:
+Automatic selection lets Ookla choose a suitable server. To choose from the nearby servers exposed by the official CLI:
 
-1. Enter a city, country, US state or abbreviation, provider, or server ID in **Find servers worldwide**.
-2. Select the refresh button and wait for the matching servers to appear.
+1. Optionally enter a location, provider, or server ID in **Filter Ookla's nearby servers**.
+2. Select the refresh button to load and filter Ookla's nearby-server list.
 3. Choose a server from **Speedtest.net server**.
 
 The selection is remembered for that action. Choose **Auto-select the best server** to return to automatic selection. If you already know a Speedtest.net server ID, you can enter it in the advanced **Specific server ID** field.
 
-Examples of useful searches include `Texas`, `TX`, `Dallas`, `United Kingdom`, `London`, a provider name, or a numeric server ID.
+Only the nearby choices supplied by Ookla are shown, so a distant location may not appear. If you know another valid Speedtest.net server ID, enter it directly in **Specific server ID**.
 
 ## Key controls and display
 
@@ -134,13 +137,13 @@ The CSV contains:
 
 ## Privacy and network use
 
-Tests connect to Speedtest.net and the selected test server. Server discovery also contacts Speedtest.net. If CSV logging is enabled, results are stored only in the local file you select. Speedtest+ does not upload the CSV file.
+Tests connect to Speedtest.net and the selected test server. Loading nearby servers uses the official Ookla CLI. Ookla may collect data including IP address, device identifiers, and location as described in its Privacy Policy. If CSV logging is enabled, results are stored only in the local folder you select; Speedtest+ does not upload the CSV file.
 
 ## Troubleshooting
 
-- **The key asks me to accept the terms:** open **Settings → Plugins → Speedtest+ → Open Settings**, or use **Global Settings** at the top of the action panel.
+- **The key asks me to accept the policies:** open **Settings → Plugins → Speedtest+ → Open Settings**, or use **Global Settings** at the top of the action panel.
 - **The CLI will not install:** confirm the internet connection and that the processor is listed under Requirements, then try **Install** or **Reinstall** again.
-- **A server search returns no results:** try a broader city, region, country, provider, or state abbreviation, then press refresh again.
+- **A server filter returns no results:** clear the filter and refresh to see all nearby choices, or enter a known server ID manually.
 - **A remembered server stops working:** select automatic server choice or search for another server; individual Speedtest.net servers can become unavailable.
 - **No CSV file appears:** choose a writable **CSV file location** and make sure **Save results to CSV** is enabled in global plugin settings. Only successful tests are saved.
 - **A long hold does nothing:** run a successful test first. Only valid HTTPS result links on Speedtest.net are opened.

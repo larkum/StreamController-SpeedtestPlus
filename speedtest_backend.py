@@ -5,8 +5,6 @@ import re
 import shutil
 import subprocess
 import urllib.parse
-import urllib.request
-from http.cookiejar import CookieJar
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Iterable
@@ -151,46 +149,51 @@ def filter_servers(servers: Iterable[ServerChoice], query: str, limit: int = 100
     return matches[:limit]
 
 
-def discover_servers(query: str = "") -> list[ServerChoice]:
-    try:
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
-        headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36",
-            "Accept": "application/json, text/plain, */*",
-        }
-        opener.open(urllib.request.Request("https://www.speedtest.net/", headers=headers), timeout=20).close()
-        parameters = {
-            "engine": "js",
-            "https_functional": "true",
-            "limit": "100",
-        }
-        if query.strip():
-            parameters["search"] = query.strip()
-        url = "https://www.speedtest.net/api/js/servers?" + urllib.parse.urlencode(parameters)
-        request = urllib.request.Request(url, headers={**headers, "Referer": "https://www.speedtest.net/"})
-        with opener.open(request, timeout=20) as response:
-            items = json.loads(response.read(2 * 1024 * 1024))
-        if not isinstance(items, list):
-            raise ValueError("unexpected server response")
-    except Exception as exc:
-        raise SpeedtestError(f"Could not load Speedtest.net servers: {exc}") from exc
-
+def parse_ookla_server_list(payload: str) -> list[ServerChoice]:
+    """Parse the human-readable table produced by the official CLI's --servers option."""
     choices: list[ServerChoice] = []
-    for item in items:
-        try:
-            distance = float(item.get("distance")) if item.get("distance") not in (None, "") else None
-        except (TypeError, ValueError):
-            distance = None
+    for line in payload.splitlines():
+        columns = re.split(r"\s{2,}", line.strip())
+        if len(columns) not in (3, 4) or not columns[0].isdigit():
+            continue
+        server_id = columns[0]
+        if len(columns) == 4:
+            sponsor, location, country = columns[1:]
+        else:
+            # The CLI uses minimum-width columns. A long provider name can run
+            # directly into the location, so retain the complete searchable
+            # description instead of silently dropping that server.
+            sponsor, location, country = "", columns[1], columns[2]
         choices.append(
             ServerChoice(
-                id=str(item.get("id", "")),
-                sponsor=str(item.get("sponsor", "")),
-                name=str(item.get("name", "")),
-                country=str(item.get("country") or item.get("cc") or ""),
-                distance_km=distance,
+                id=server_id,
+                sponsor=sponsor.strip(),
+                name=location.strip(),
+                country=country.strip(),
             )
         )
-    return filter_servers(choices, query)
+    if not choices:
+        raise SpeedtestError("The Ookla CLI returned an unexpected server list.")
+    return choices
+
+
+def discover_servers(query: str = "") -> list[ServerChoice]:
+    command = find_ookla_command()
+    if not command:
+        raise SpeedtestError("Install the Ookla Speedtest CLI in Global Settings before loading servers.")
+
+    args = [*command, "--accept-license", "--accept-gdpr", "--servers"]
+    try:
+        completed = subprocess.run(args, capture_output=True, text=True, timeout=30, check=False)
+    except subprocess.TimeoutExpired as exc:
+        raise SpeedtestError("Loading Ookla's nearby servers timed out.") from exc
+    except OSError as exc:
+        raise SpeedtestError(f"Could not start the Ookla CLI: {exc}") from exc
+
+    if completed.returncode != 0:
+        message = (completed.stderr or completed.stdout or "Unknown error").strip().splitlines()[-1]
+        raise SpeedtestError(f"Ookla CLI could not load nearby servers: {message}")
+    return filter_servers(parse_ookla_server_list(completed.stdout), query)
 
 
 def _candidate_commands() -> list[list[str]]:
@@ -259,5 +262,5 @@ def run_speedtest(settings: dict) -> SpeedtestResult:
     server_id = str(settings.get("server_id", "")).strip()
     accepted = bool(settings.get("accept_ookla_terms", False))
     if not accepted:
-        raise SpeedtestError("Accept the Ookla CLI terms in Settings > Plugins > Speedtest+ before running a test.")
+        raise SpeedtestError("Accept Ookla's policies in Settings > Plugins > Speedtest+ before running a test.")
     return run_ookla(server_id)

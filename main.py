@@ -30,7 +30,7 @@ class SpeedtestPlusPlugin(PluginBase):
                 action_name=self.locale_manager.get("actions.speedtest_plus.name"),
                 icon=Gtk.Picture.new_for_filename(os.path.join(self.PATH, "assets", "speedplus-icon.png")),
                 description="Runs a configurable Speedtest.net test and keeps the latest result on the key.",
-                requirements="Internet access and acceptance of Ookla's CLI terms for personal, non-commercial use.",
+                requirements="Internet access and acceptance of Ookla's EULA, Terms of Use and Privacy Policy for personal, non-commercial use.",
                 settings_schema={
                     "server_id": {"type": "string", "default": ""},
                     "server_label": {"type": "string", "default": "Auto-select"},
@@ -65,19 +65,25 @@ class SpeedtestPlusPlugin(PluginBase):
         settings = self.get_settings() or {}
 
         terms_row = Adw.SwitchRow(
-            title="I accept Ookla's CLI terms",
-            subtitle="Required before downloading or running Ookla's Speedtest CLI.",
+            title="I accept Ookla's EULA, Terms of Use and Privacy Policy",
+            subtitle="I confirm this is for personal, non-commercial use. Required before installing or running the CLI.",
         )
-        terms_row.set_active(bool(settings.get("accept_ookla_terms", False)))
-        terms_button = Gtk.Button(label="View terms", valign=Gtk.Align.CENTER)
-        terms_button.connect(
-            "clicked",
-            lambda *_: Gio.AppInfo.launch_default_for_uri(
-                "https://www.speedtest.net/about/eula", None
-            ),
-        )
-        terms_row.add_suffix(terms_button)
+        terms_row.set_active(bool(settings.get("accept_ookla_policies", False)))
         group.add(terms_row)
+
+        policies_row = Adw.ActionRow(
+            title="Read Ookla's policies",
+            subtitle="Review all three documents before accepting.",
+        )
+        for label, uri in (
+            ("EULA", "https://www.speedtest.net/about/eula"),
+            ("Terms", "https://www.speedtest.net/about/terms"),
+            ("Privacy", "https://www.speedtest.net/about/privacy"),
+        ):
+            button = Gtk.Button(label=label, valign=Gtk.Align.CENTER)
+            button.connect("clicked", lambda _button, target=uri: Gio.AppInfo.launch_default_for_uri(target, None))
+            policies_row.add_suffix(button)
+        group.add(policies_row)
 
         cli_row = Adw.ActionRow()
         install_button = Gtk.Button(valign=Gtk.Align.CENTER)
@@ -97,13 +103,13 @@ class SpeedtestPlusPlugin(PluginBase):
 
         def terms_changed(row, _param):
             updated = dict(self.get_settings() or {})
-            updated["accept_ookla_terms"] = row.get_active()
+            updated["accept_ookla_policies"] = row.get_active()
             self.set_settings(updated)
             install_button.set_sensitive(row.get_active())
 
         def install_clicked(button):
             if not terms_row.get_active():
-                cli_row.set_title("Accept Ookla's terms first")
+                cli_row.set_title("Accept Ookla's policies first")
                 return
             button.set_sensitive(False)
             cli_row.set_title("Installing Ookla CLI…")
