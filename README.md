@@ -2,7 +2,7 @@
 
 ![Speedtest+ banner](store/Thumbnail.png)
 
-Speedtest+ puts a complete Speedtest.net result on a StreamController key. Run a test on demand or automatically, choose the server you want, keep a CSV history, and open the latest shareable result in your browser.
+Speedtest+ is an enhanced internet speed-testing plugin for StreamController that uses the official Speedtest® CLI by Ookla®. It puts a complete result on a StreamController key, runs tests on demand or automatically, remembers server choices, keeps an optional CSV history, and opens the latest shareable result in your browser.
 
 > **Disclaimer:** This plugin is an independent, non-commercial open-source project. It is not affiliated with, maintained, authorized, sponsored, or endorsed by Ookla, LLC. Speedtest® and Ookla® are registered trademarks of Ookla, LLC.
 
@@ -80,7 +80,7 @@ The policy choice and CLI installation are global and shared by every Speedtest+
 
 Users upgrading from an earlier preview must review the expanded policy links and confirm the new acceptance switch once.
 
-The installer downloads the official Ookla CLI directly from Ookla, verifies the download, and keeps a private copy in your user data. It does not need an administrator password and does not modify the operating system. If the official CLI is already installed on the system, Speedtest+ can use it.
+The installer downloads the [official Speedtest CLI](https://www.speedtest.net/apps/cli) directly from Ookla, verifies the download, and keeps a private copy in your user data. It does not need an administrator password and does not modify the operating system. If the official CLI is already installed on the system, Speedtest+ can use it.
 
 ## Choose a server
 
@@ -139,7 +139,7 @@ The CSV contains:
 
 ## Privacy and network use
 
-Tests connect to Speedtest.net and the selected test server. Loading nearby servers uses the official Ookla CLI. Ookla may collect data including IP address, device identifiers, and location as described in its Privacy Policy. If CSV logging is enabled, results are stored only in the local folder you select; Speedtest+ does not upload the CSV file.
+Tests connect to Speedtest.net and the selected test server. Loading nearby servers uses the [official Speedtest CLI](https://www.speedtest.net/apps/cli). Ookla may collect data including IP address, device identifiers, and location as described in its [Privacy Policy](https://www.speedtest.net/about/privacy). If CSV logging is enabled, results are stored only in the local folder you select; Speedtest+ does not upload the CSV file.
 
 ## Troubleshooting
 
