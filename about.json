@@ -9,7 +9,7 @@
     "Speedtest+": ["Larkum"]
   },
   "comments": {
-    "en_US": "An enhanced, unofficial community fork of the original StreamController Speedtest plugin."
+    "en_US": "An independent, non-commercial open-source project. Not affiliated with, maintained, authorized, sponsored, or endorsed by Ookla, LLC. Speedtest® and Ookla® are registered trademarks of Ookla, LLC."
   },
   "copyright": "Copyright (C) Core447 and Larkum",
   "support": "https://github.com/larkum/StreamController-SpeedtestPlus",

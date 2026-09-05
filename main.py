@@ -64,6 +64,16 @@ class SpeedtestPlusPlugin(PluginBase):
         )
         settings = self.get_settings() or {}
 
+        disclaimer_row = Adw.ActionRow(
+            title="Independent project disclaimer",
+            subtitle=(
+                "This non-commercial open-source plugin is not affiliated with, maintained, authorized, "
+                "sponsored, or endorsed by Ookla, LLC. Speedtest® and Ookla® are registered trademarks "
+                "of Ookla, LLC."
+            ),
+        )
+        group.add(disclaimer_row)
+
         terms_row = Adw.SwitchRow(
             title="I accept Ookla's EULA, Terms of Use and Privacy Policy",
             subtitle="I confirm this is for personal, non-commercial use. Required before installing or running the CLI.",

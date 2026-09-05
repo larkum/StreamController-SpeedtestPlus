@@ -4,6 +4,8 @@
 
 Speedtest+ puts a complete Speedtest.net result on a StreamController key. Run a test on demand or automatically, choose the server you want, keep a CSV history, and open the latest shareable result in your browser.
 
+> **Disclaimer:** This plugin is an independent, non-commercial open-source project. It is not affiliated with, maintained, authorized, sponsored, or endorsed by Ookla, LLC. Speedtest® and Ookla® are registered trademarks of Ookla, LLC.
+
 Speedtest+ is an enhanced GPL-3.0 fork of the original [StreamController Speedtest plugin](https://github.com/StreamController/Speedtest) by Core447.
 
 ## Features
@@ -152,4 +154,6 @@ Tests connect to Speedtest.net and the selected test server. Loading nearby serv
 
 Speedtest+ is licensed under [GPL-3.0](LICENSE). The original StreamController Speedtest plugin was created by Core447; Speedtest+ enhancements and maintenance are by Larkum.
 
-Speedtest is a trademark of Ookla. Speedtest+ is an independent community plugin and is not affiliated with or endorsed by Ookla. Its original gauge-and-plus artwork does not copy Ookla's logo, and the plugin does not redistribute Ookla's proprietary executable.
+This plugin is an independent, non-commercial open-source project. It is not affiliated with, maintained, authorized, sponsored, or endorsed by Ookla, LLC. Speedtest® and Ookla® are registered trademarks of Ookla, LLC.
+
+The plugin's original gauge-and-plus artwork does not copy Ookla's logo, and the plugin does not redistribute Ookla's proprietary executable.

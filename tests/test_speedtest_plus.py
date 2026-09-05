@@ -253,6 +253,8 @@ class ArtworkTests(unittest.TestCase):
         self.assertNotIn("self.terms_row", action_source)
         self.assertIn("self.has_plugin_settings = True", plugin_source)
         self.assertIn("def get_settings_area(self):", plugin_source)
+        self.assertIn("Independent project disclaimer", plugin_source)
+        self.assertIn("not affiliated with, maintained, authorized", plugin_source)
 
     def test_global_terms_choice_is_used_by_every_action(self):
         effective, _safe_name, _resolved_path = _load_effective_test_settings()
