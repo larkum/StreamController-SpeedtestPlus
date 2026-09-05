@@ -10,7 +10,7 @@ Speedtest+ is an enhanced GPL-3.0 fork of the original [StreamController Speedte
 
 ## Features
 
-- Official Ookla Speedtest CLI measurement engine
+- [Official Speedtest® CLI by Ookla®](https://www.speedtest.net/apps/cli) measurement engine
 - Ping, download speed, upload speed, and test time on one key
 - Download and upload results displayed in decimal Mbps; ping displayed in ms
 - Nearby server choices loaded through the official Ookla CLI, with filtering by location, provider, or server ID
