@@ -150,6 +150,10 @@ Tests connect to Speedtest.net and the selected test server. Loading nearby serv
 - **No CSV file appears:** choose a writable **CSV file location** and make sure **Save results to CSV** is enabled in global plugin settings. Only successful tests are saved.
 - **A long hold does nothing:** run a successful test first. Only valid HTTPS result links on Speedtest.net are opened.
 
+##Support
+
+Visit my Discord Server for Support https://discord.gg/scgSjec98P
+
 ## Licence and attribution
 
 Speedtest+ is licensed under [GPL-3.0](LICENSE). The original StreamController Speedtest plugin was created by Core447; Speedtest+ enhancements and maintenance are by Larkum.
