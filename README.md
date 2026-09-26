@@ -150,7 +150,7 @@ Tests connect to Speedtest.net and the selected test server. Loading nearby serv
 - **No CSV file appears:** choose a writable **CSV file location** and make sure **Save results to CSV** is enabled in global plugin settings. Only successful tests are saved.
 - **A long hold does nothing:** run a successful test first. Only valid HTTPS result links on Speedtest.net are opened.
 
-##Support
+## Support
 
 Visit my Discord Server for Support https://discord.gg/scgSjec98P
 
